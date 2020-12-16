@@ -1,15 +1,24 @@
 from cv2 import cv2
+import os
 
-videoPath = input(
-    "Please Create a folder called 'frames_color' then\nEnter the ABSOLUTE Path to the video including its extension\n"
+folderPath = input(
+    "Please Create a folder called 'frames_color' then\nEnter the ABSOLUTE Path to the Folder of videos\n"
 )
-vidcap = cv2.VideoCapture(videoPath)
 
-success, image = vidcap.read()
+vidNames = os.listdir(folderPath)
+print(vidNames)
+
+
+vidCaps = []
+for i in vidNames:
+    vidCaps.append(cv2.VideoCapture(folderPath + f"\\{i}"))
+
 
 count = 0
-while success:
-    image = cv2.rotate(image, cv2.ROTATE_90_CLOCKWISE)
-    cv2.imwrite(f"./frames_color/frame{count}.jpg", image)
-    success, image = vidcap.read()
-    count += 1
+for i in vidCaps:
+    success, image = i.read()
+    while success:
+        image = cv2.rotate(image, cv2.ROTATE_90_CLOCKWISE)
+        cv2.imwrite(f"./frames_color/frame{count}.jpg", image)
+        success, image = i.read()
+        count += 1
