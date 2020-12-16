@@ -2,7 +2,7 @@
 Computer Vision Verification of Sample Self-Acquisition for Self Diagnostics Using Deep Learning.
 
 # Scripts Help
-# CutVid Script
+## CutVid Script
     
     Description: CutVid is used to cut videos into frames.
     
