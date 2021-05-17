@@ -1,6 +1,11 @@
 *.mp4
 *.jpg
+*.png
 *.MOV
+*.h5
+*.npy
+*.ipynb
 scripts/.vscode/settings.json
 .vscode/settings.json
 YOLO_DOWNLOADS/
+scripts/logs/*
