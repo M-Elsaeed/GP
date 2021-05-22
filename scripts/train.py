@@ -86,58 +86,45 @@ y_train = to_categorical(y_train, num_classes=3)
 print(x_train.shape, y_train.shape)
 
 new_input = keras.Input(shape=(480, 270, 3))
-model = ResNet50(include_top=False, input_tensor=new_input, pooling="avg")
+coreModel = ResNet50(include_top=False, input_tensor=new_input)
+model = keras.models.Sequential()
+model.add(coreModel)
+model.add(keras.layers.Flatten())
+model.add(keras.layers.Dense(3, activation="softmax"))
 
-flat1 = Flatten()(model.layers[-1].output)
-class1 = Dense(1024, activation="relu")(flat1)
-output = Dense(3, activation="softmax")(class1)
-
-model = Model(inputs=model.inputs, outputs=output)
 model.summary()
-
+# 0.0001
 adamOptimizer = keras.optimizers.Adam(learning_rate=0.001)
 model.compile(
     loss="categorical_crossentropy", optimizer=adamOptimizer, metrics=["accuracy"]
 )
-model.fit(
-    x_train,
-    y_train,
-    batch_size=8,
-    epochs=10,
-    validation_split=0.1
-    # ,
-    # use_multiprocessing=True,
-    # workers=8
-)
-model.save(f"./trainedmodelBeforeAugmentation.h5", save_format="h5")
+
+model.fit(x_train, y_train, batch_size=8, epochs=10, validation_split=0.1)
+
+model.save(f"./beforeAugmentation.h5", save_format="h5")
 
 
 # Training on augmented data
 
-# imagesLeft = np.load("./leftAugmented.npy")
-# imagesRight = np.load("./rightAugmented.npy")
-# imagesFalse = np.load("./falseAugmentedTill2000.npy")
-# np.concatenate((imagesFalse, np.load("./falseAugmentedFrom2000.npy")))
+imagesLeft = np.load("./leftAugmented.npy")
+imagesRight = np.load("./rightAugmented.npy")
+imagesFalse = np.load("./falseAugmentedTill2000.npy")
+np.concatenate((imagesFalse, np.load("./falseAugmentedFrom2000.npy")))
 
 
-# x_train = np.concatenate((imagesLeft, imagesRight, imagesFalse))
-# x_train = x_train/255
+x_train = np.concatenate((imagesLeft, imagesRight, imagesFalse))
+x_train = x_train / 255
 
-# leftLabels = np.array([0] * imagesLeft.shape[0])
-# rightLabels = np.array([1] * imagesRight.shape[0])
-# falseLabels = np.array([2] * imagesFalse.shape[0])
+leftLabels = np.array([0] * imagesLeft.shape[0])
+rightLabels = np.array([1] * imagesRight.shape[0])
+falseLabels = np.array([2] * imagesFalse.shape[0])
 
-# y_train = np.concatenate((leftLabels, rightLabels, falseLabels))
-# y_train = np.reshape(y_train, (y_train.shape[0], 1))
-# y_train = to_categorical(y_train, num_classes=3)
-# print(x_train.shape, y_train.shape)
+y_train = np.concatenate((leftLabels, rightLabels, falseLabels))
+y_train = np.reshape(y_train, (y_train.shape[0], 1))
+y_train = to_categorical(y_train, num_classes=3)
+print(x_train.shape, y_train.shape)
 
-# model.fit(
-#         x_train,
-#         y_train,
-#         batch_size=8,
-#         epochs=10,
-#         validation_split=0.1
-#     )
+# 
+model.fit(x_train, y_train, batch_size=8, epochs=10, validation_split=0.1)
 
-# model.save(f"./trainedmodelAfterAugmentation.h5", save_format="h5")
+model.save(f"./AfterAugmentation.h5", save_format="h5")
