@@ -10,7 +10,7 @@ for gpu in gpus:
     tf.config.experimental.set_memory_growth(gpu, True)
 
 
-model = keras.models.load_model(f"./all.h5")
+model = keras.models.load_model(f"../models/allaug.h5")
 
 
 frames = np.array(
@@ -18,11 +18,11 @@ frames = np.array(
         cv2.resize(cv2.imread("../test/f0.jpg"), dsize=(270, 480)),
         cv2.resize(cv2.imread("../test/f1.jpg"), dsize=(270, 480)),
         cv2.resize(cv2.imread("../test/l0.jpg"), dsize=(270, 480)),
-        cv2.resize(cv2.imread("../test/r0.jpg"), dsize=(270, 480)),
+        cv2.resize(cv2.imread("../test/r0.jpg"), dsize=(270, 480))
     ]
 )
 print(frames.shape)
-frames = frames / 255
+# frames = frames / 255
 
 YHat = model.predict(frames)
 print(YHat.shape)

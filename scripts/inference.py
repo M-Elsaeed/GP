@@ -9,30 +9,33 @@ gpus = tf.config.experimental.list_physical_devices(device_type="GPU")
 for gpu in gpus:
     tf.config.experimental.set_memory_growth(gpu, True)
 
-model = keras.models.load_model(f"./color_normalized_nodropout.h5")
+model = keras.models.load_model(f"../models/last100.h5")
 
 
-url = 'http://192.168.1.112:8080/video'
+# url = 'http://192.168.1.89:8080/video'
+url = 'http://192.168.1.89:8080/video'
 cap = cv2.VideoCapture(url)
+# cap = cv2.VideoCapture("../test/right_test.mp4")
 
 
 cv2.namedWindow("output", cv2.WINDOW_NORMAL)
 while(True):
     ret, frame = cap.read()
+    # frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)
     if frame is not None:
         cv2.imshow('output',frame)
-        frame = frame / 255
+        # frame = frame / 255
         x_to_predict = np.array([cv2.resize(frame, dsize=(270, 480))])
         # print()
         yHat = model.predict(x_to_predict)[0]
         # print(yHat)
         # print(len(yHat))
         if yHat[0] > yHat[1] and yHat[0] > yHat[2]:
-            print(yHat, "L")
+            print("L")
         elif yHat[1] > yHat[0] and yHat[1] > yHat[2]:
-            print(yHat, "R")
+            print("R")
         else:
-            print(yHat, "F")
+            print("F")
     
     q = cv2.waitKey(1)
     if q == ord("q"):
