@@ -5,6 +5,7 @@
 *.h5
 *.npy
 *.ipynb
+*.json
 scripts/.vscode/settings.json
 .vscode/settings.json
 YOLO_DOWNLOADS/
