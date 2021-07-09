@@ -1,16 +1,24 @@
 import cv2
 import numpy as np
-
+import os
 
 def comp_(a1):
     return a1[1]
 
 
 rootDir = "."
+leftCaps  = []
+rightCaps  = []
+falseCaps  = []
+print(os.listdir(f'../rawData/'))
+for i in os.listdir(f'../rawData/'):
+    if "left" in i and ("MOV" in i or "mp4" in i):
+        leftCaps.append(cv2.VideoCapture(f"../rawData/{i}"))
+    elif "right" in i and ("MOV" in i or "mp4" in i):
+        rightCaps.append(cv2.VideoCapture(f"../rawData/{i}"))
+    elif "false" in i and ("MOV" in i or "mp4" in i):
+        falseCaps.append(cv2.VideoCapture(f"../rawData/{i}"))
 
-leftCap = cv2.VideoCapture("D:/Updated/GP/raw_video_data/left4.mp4")
-rightCap = cv2.VideoCapture("D:/Updated/GP/raw_video_data/right4.mp4")
-falseCap = cv2.VideoCapture("D:/Updated/GP/raw_video_data/false4.mp4")
 
 net = cv2.dnn.readNetFromCaffe(
     "./deploy.prototxt", "./res10_300x300_ssd_iter_140000.caffemodel"
@@ -21,149 +29,156 @@ eye_cascade = cv2.CascadeClassifier(
 newX = []
 newY = []
 
-success, image = leftCap.read()
-lbl = [1, 0, 0]
-while success:
-    (h, w) = image.shape[:2]
-    blob = cv2.dnn.blobFromImage(
-        cv2.resize(image, (300, 300)), 1.0, (300, 300), (104.0, 177.0, 123.0)
-    )
-    net.setInput(blob)
-    detections = net.forward()
-    arrDs = []
-    # loop over the detections
-    i = 0
-    while i < detections.shape[2]:
-        # extract the confidence (i.e., probability) associated with the
-        # prediction
-        confidence = detections[0, 0, i, 2]
-
-        # filter out weak detections by ensuring the `confidence` is
-        # greater than the minimum confidence
-        if confidence > 0.95:
-            box = detections[0, 0, i, 3:7] * np.array(
-                [w, h, w, h]
-            )
-            (startX, startY, endX, endY) = box.astype("int")
-            eyes = eye_cascade.detectMultiScale(cv2.cvtColor(image[startY:endY, startX:endX], cv2.COLOR_BGR2GRAY), 1.1, 4)
-            if len(eyes) >= 1:
-                arrDs.append([i, confidence])
-        i+=1
-    # print(arrDs)
-    arrDs.sort(key=comp_)
-    # print(arrDs)
-
-    # compute the (x, y)-coordinates of the bounding box for the
-    # object
-    if len(arrDs):
-        box = detections[0, 0, arrDs[len(arrDs) - 1][0], 3:7] * np.array([w, h, w, h])
-        (startX, startY, endX, endY) = box.astype("int")
-
-        # print("before", image.shape)
-        crop_img = image[startY:endY, startX:endX]
-        # print("crop_img", crop_img.shape, startY, endY, startX, endX)
-        crop_img = cv2.resize(crop_img, (224, 224))
-        newX.append(crop_img)
-        newY.append(lbl)
+for leftCap in leftCaps:
     success, image = leftCap.read()
+    lbl = [1, 0, 0]
+    while success:
+        (h, w) = image.shape[:2]
+        blob = cv2.dnn.blobFromImage(
+            cv2.resize(image, (300, 300)), 1.0, (300, 300), (104.0, 177.0, 123.0)
+        )
+        net.setInput(blob)
+        detections = net.forward()
+        arrDs = []
+        # loop over the detections
+        i = 0
+        while i < detections.shape[2]:
+            # extract the confidence (i.e., probability) associated with the
+            # prediction
+            confidence = detections[0, 0, i, 2]
 
-success, image = rightCap.read()
-lbl = [0, 1, 0]
-while success:
-    (h, w) = image.shape[:2]
-    blob = cv2.dnn.blobFromImage(
-        cv2.resize(image, (300, 300)), 1.0, (300, 300), (104.0, 177.0, 123.0)
-    )
-    net.setInput(blob)
-    detections = net.forward()
-    arrDs = []
-    # loop over the detections
-    i = 0
-    while i < detections.shape[2]:
-        # extract the confidence (i.e., probability) associated with the
-        # prediction
-        confidence = detections[0, 0, i, 2]
+            # filter out weak detections by ensuring the `confidence` is
+            # greater than the minimum confidence
+            if confidence > 0.95:
+                box = detections[0, 0, i, 3:7] * np.array(
+                    [w, h, w, h]
+                )
+                (startX, startY, endX, endY) = box.astype("int")
+                # print(image.shape, startY, endY, startX, endX)
+                # cv2.imshow("out", image)
+                # cv2.waitKey(0)
+                # cv2.imshow("out", image[startY:endY, startX:endX])
+                if startY > -1:
+                    eyes = eye_cascade.detectMultiScale(cv2.cvtColor(image[startY:endY, startX:endX], cv2.COLOR_BGR2GRAY), 1.1, 4)
+                    if len(eyes) >= 1:
+                        arrDs.append([i, confidence])
+            i+=1
+        # print(arrDs)
+        arrDs.sort(key=comp_)
+        # print(arrDs)
 
-        # filter out weak detections by ensuring the `confidence` is
-        # greater than the minimum confidence
-        if confidence > 0.95:
-            box = detections[0, 0, i, 3:7] * np.array(
-                [w, h, w, h]
-            )
+        # compute the (x, y)-coordinates of the bounding box for the
+        # object
+        if len(arrDs):
+            box = detections[0, 0, arrDs[len(arrDs) - 1][0], 3:7] * np.array([w, h, w, h])
             (startX, startY, endX, endY) = box.astype("int")
-            eyes = eye_cascade.detectMultiScale(cv2.cvtColor(image[startY:endY, startX:endX], cv2.COLOR_BGR2GRAY), 1.1, 4)
-            if len(eyes) >= 1:
-                arrDs.append([i, confidence])
-        i+=1
-    # print(arrDs)
-    arrDs.sort(key=comp_)
-    # print(arrDs)
 
-    # compute the (x, y)-coordinates of the bounding box for the
-    # object
-    if len(arrDs):
-        box = detections[0, 0, arrDs[len(arrDs) - 1][0], 3:7] * np.array([w, h, w, h])
-        (startX, startY, endX, endY) = box.astype("int")
+            # print("before", image.shape)
+            crop_img = image[startY:endY, startX:endX]
+            # print("crop_img", crop_img.shape, startY, endY, startX, endX)
+            crop_img = cv2.resize(crop_img, (224, 224))
+            newX.append(crop_img)
+            newY.append(lbl)
+        success, image = leftCap.read()
 
-        # print("before", image.shape)
-        crop_img = image[startY:endY, startX:endX]
-        # print("crop_img", crop_img.shape, startY, endY, startX, endX)
-        crop_img = cv2.resize(crop_img, (224, 224))
-        newX.append(crop_img)
-        newY.append(lbl)
+for rightCap in rightCaps:
     success, image = rightCap.read()
+    lbl = [0, 1, 0]
+    while success:
+        (h, w) = image.shape[:2]
+        blob = cv2.dnn.blobFromImage(
+            cv2.resize(image, (300, 300)), 1.0, (300, 300), (104.0, 177.0, 123.0)
+        )
+        net.setInput(blob)
+        detections = net.forward()
+        arrDs = []
+        # loop over the detections
+        i = 0
+        while i < detections.shape[2]:
+            # extract the confidence (i.e., probability) associated with the
+            # prediction
+            confidence = detections[0, 0, i, 2]
 
+            # filter out weak detections by ensuring the `confidence` is
+            # greater than the minimum confidence
+            if confidence > 0.95:
+                box = detections[0, 0, i, 3:7] * np.array(
+                    [w, h, w, h]
+                )
+                (startX, startY, endX, endY) = box.astype("int")
+                eyes = eye_cascade.detectMultiScale(cv2.cvtColor(image[startY:endY, startX:endX], cv2.COLOR_BGR2GRAY), 1.1, 4)
+                if len(eyes) >= 1:
+                    arrDs.append([i, confidence])
+            i+=1
+        # print(arrDs)
+        arrDs.sort(key=comp_)
+        # print(arrDs)
 
-success, image = falseCap.read()
-lbl = [0, 0, 1]
-while success:
-    (h, w) = image.shape[:2]
-    blob = cv2.dnn.blobFromImage(
-        cv2.resize(image, (300, 300)), 1.0, (300, 300), (104.0, 177.0, 123.0)
-    )
-    net.setInput(blob)
-    detections = net.forward()
-    arrDs = []
-    # loop over the detections
-    i = 0
-    while i < detections.shape[2]:
-        # extract the confidence (i.e., probability) associated with the
-        # prediction
-        confidence = detections[0, 0, i, 2]
-
-        # filter out weak detections by ensuring the `confidence` is
-        # greater than the minimum confidence
-        if confidence > 0.95:
-            box = detections[0, 0, i, 3:7] * np.array(
-                [w, h, w, h]
-            )
+        # compute the (x, y)-coordinates of the bounding box for the
+        # object
+        if len(arrDs):
+            box = detections[0, 0, arrDs[len(arrDs) - 1][0], 3:7] * np.array([w, h, w, h])
             (startX, startY, endX, endY) = box.astype("int")
-            eyes = eye_cascade.detectMultiScale(cv2.cvtColor(image[startY:endY, startX:endX], cv2.COLOR_BGR2GRAY), 1.1, 4)
-            if len(eyes) >= 1:
-                arrDs.append([i, confidence])
-        i+=1
-    # print(arrDs)
-    arrDs.sort(key=comp_)
-    # print(arrDs)
 
-    # compute the (x, y)-coordinates of the bounding box for the
-    # object
-    if len(arrDs):
-        box = detections[0, 0, arrDs[len(arrDs) - 1][0], 3:7] * np.array([w, h, w, h])
-        (startX, startY, endX, endY) = box.astype("int")
+            # print("before", image.shape)
+            crop_img = image[startY:endY, startX:endX]
+            # print("crop_img", crop_img.shape, startY, endY, startX, endX)
+            crop_img = cv2.resize(crop_img, (224, 224))
+            newX.append(crop_img)
+            newY.append(lbl)
+        success, image = rightCap.read()
 
-        # print("before", image.shape)
-        crop_img = image[startY:endY, startX:endX]
-        # print("crop_img", crop_img.shape, startY, endY, startX, endX)
-        crop_img = cv2.resize(crop_img, (224, 224))
-        newX.append(crop_img)
-        newY.append(lbl)
+for falseCap in falseCaps:
     success, image = falseCap.read()
+    lbl = [0, 0, 1]
+    while success:
+        (h, w) = image.shape[:2]
+        blob = cv2.dnn.blobFromImage(
+            cv2.resize(image, (300, 300)), 1.0, (300, 300), (104.0, 177.0, 123.0)
+        )
+        net.setInput(blob)
+        detections = net.forward()
+        arrDs = []
+        # loop over the detections
+        i = 0
+        while i < detections.shape[2]:
+            # extract the confidence (i.e., probability) associated with the
+            # prediction
+            confidence = detections[0, 0, i, 2]
+
+            # filter out weak detections by ensuring the `confidence` is
+            # greater than the minimum confidence
+            if confidence > 0.95:
+                box = detections[0, 0, i, 3:7] * np.array(
+                    [w, h, w, h]
+                )
+                (startX, startY, endX, endY) = box.astype("int")
+                eyes = eye_cascade.detectMultiScale(cv2.cvtColor(image[startY:endY, startX:endX], cv2.COLOR_BGR2GRAY), 1.1, 4)
+                if len(eyes) >= 1:
+                    arrDs.append([i, confidence])
+            i+=1
+        # print(arrDs)
+        arrDs.sort(key=comp_)
+        # print(arrDs)
+
+        # compute the (x, y)-coordinates of the bounding box for the
+        # object
+        if len(arrDs):
+            box = detections[0, 0, arrDs[len(arrDs) - 1][0], 3:7] * np.array([w, h, w, h])
+            (startX, startY, endX, endY) = box.astype("int")
+
+            # print("before", image.shape)
+            crop_img = image[startY:endY, startX:endX]
+            # print("crop_img", crop_img.shape, startY, endY, startX, endX)
+            crop_img = cv2.resize(crop_img, (224, 224))
+            newX.append(crop_img)
+            newY.append(lbl)
+        success, image = falseCap.read()
 
 
 npArr = np.array(newX)
 npArr = npArr.astype(np.float32)
 npArr /= 255
 
-np.save("./x_test_cropped_float_normalized", npArr)
-np.save("./y_test_cropped", np.array(newY))
+np.save("./x_train_cropped_float_normalized", npArr)
+np.save("./y_train_cropped", np.array(newY))

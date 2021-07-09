@@ -1,0 +1,2 @@
+def viewImagesFromNpy(path):
+    

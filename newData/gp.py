@@ -10,7 +10,7 @@ from tensorflow.keras import layers
 from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from keras.applications.resnet import ResNet50
-
+from makeDataset import makeTrainingDataAndLabels
 
 gpus = tf.config.experimental.list_physical_devices(device_type="GPU")
 for gpu in gpus:
@@ -63,120 +63,6 @@ def face_detector(img):
     return None
 
 
-def makeTrainingDataAndLabels(
-    saveToDrive=False,
-    shuffleArray=False,
-    normalizeArray=False,
-    rotateImages=False,
-    resizeImages=False,
-    cropFaces=False,
-):
-    print("makingArrays")
-    desc = f"{'shuffled_' if shuffleArray else ''}{'normalized_' if normalizeArray else ''}{'rotated_' if rotateImages else ''}{'resized_' if resizeImages else ''}{'cropped' if cropFaces else ''}"
-    print(desc)
-
-    left = np.load(f"{rootDir}/npys/left.npy")
-    right = np.load(f"{rootDir}/npys/right.npy")
-    false = np.load(f"{rootDir}/npys/false.npy")
-
-    if rotateImages:
-        for i in range(len(left)):
-            left[i] = cv2.rotate(left[i], cv2.ROTATE_90_CLOCKWISE)
-        for i in range(len(right)):
-            right[i] = cv2.rotate(right[i], cv2.ROTATE_90_CLOCKWISE)
-        for i in range(len(false)):
-            false[i] = cv2.rotate(false[i], cv2.ROTATE_90_CLOCKWISE)
-
-    if resizeImages:
-        for i in range(len(left)):
-            left[i] = cv2.resize(left[i], (224, 224))
-        for i in range(len(right)):
-            right[i] = cv2.resize(right[i], (224, 224))
-        for i in range(len(false)):
-            false[i] = cv2.resize(false[i], (224, 224))
-
-    if cropFaces:
-        newLeft = []
-        newRight = []
-        newFalse = []
-
-        for i in left:
-            fc = face_detector(i)
-            if fc is not None:
-                newLeft.append(fc)
-        left = newLeft
-
-        for i in right:
-            fc = face_detector(i)
-            if fc is not None:
-                newRight.append(fc)
-        right = newRight
-
-        for i in false:
-            fc = face_detector(i)
-            if fc is not None:
-                newFalse.append(fc)
-        false = newFalse
-
-        left = np.array(left)
-        right = np.array(right)
-        false = np.array(false)
-
-    print(left.shape, right.shape, false.shape)
-
-    if normalizeArray:
-        left = left.astype(np.float32)
-        right = right.astype(np.float32)
-        false = false.astype(np.float32)
-        left /= 255.0
-        right /= 255.0
-        false /= 255.0
-
-    x_train = np.concatenate((left, right, false))
-
-    leftLabels = [0] * left.shape[0]
-    rightLabels = [1] * right.shape[0]
-    falseLabels = [2] * false.shape[0]
-
-    y_train = np.concatenate((leftLabels, rightLabels, falseLabels))
-    y_train = np.reshape(y_train, (y_train.shape[0], 1))
-    y_train = to_categorical(y_train, num_classes=3)
-
-    if shuffleArray:
-        x_train, y_train = shuffle(x_train, y_train)
-
-    if saveToDrive:
-        np.save(f"{rootDir}/npys/x_train{desc}", x_train)
-        np.save(f"{rootDir}/npys/y_train{desc}", y_train)
-
-    return x_train, y_train
-
-
-def cropTestSet():
-    x_test = np.load(f"{rootDir}/npys/x_test.npy")
-    y_test = np.load(f"{rootDir}/npys/y_test.npy")
-    print(x_test.shape, y_test.shape)
-    newX = []
-    newY = []
-    for i in range(len(x_test)):
-        fc = face_detector((x_test[i] * 255).astype(np.uint8))
-        if fc is not None:
-            newX.append(fc)
-            newY.append(y_test[i])
-
-    newX = np.array(newX)
-    newY = np.array(newY)
-
-    newX = newX.astype(np.float32)
-    newY = newY.astype(np.float32)
-
-    newX /= 255.0
-    print(newX.shape, newY.shape)
-    np.save(f"{rootDir}/npys/x_test", newX)
-    np.save(f"{rootDir}/npys/y_test", newY)
-
-
-# cropTestSet()
 
 try:
     x_train = np.load(f"{rootDir}/npys/x_train.npy")

@@ -1,20 +1,12 @@
 import os
 import gc
 import platform
-import matplotlib.pyplot as plt
 from cv2 import cv2
 import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
 from tensorflow.keras.utils import to_categorical
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
-
-gpus = tf.config.experimental.list_physical_devices(device_type="GPU")
-for gpu in gpus:
-    tf.config.experimental.set_memory_growth(gpu, True)
-
-from keras.applications.resnet import ResNet50
 
 
 gpus = tf.config.experimental.list_physical_devices(device_type="GPU")
