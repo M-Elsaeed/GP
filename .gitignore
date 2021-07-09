@@ -10,3 +10,5 @@ scripts/.vscode/settings.json
 .vscode/settings.json
 YOLO_DOWNLOADS/
 scripts/logs/*
+newData/temp/res10_300x300_ssd_iter_140000.caffemodel
+newData/temp/deploy.prototxt
