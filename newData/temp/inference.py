@@ -8,6 +8,30 @@ from tensorflow import keras
 def comp_(a1):
     return a1[1]
 
+def analyzeFaceDetections(detections, image):
+    arrDs = []
+        # loop over the detections
+    i = 0
+    while i < detections.shape[2]:
+        # extract the confidence (i.e., probability) associated with the
+        # prediction
+        confidence = detections[0, 0, i, 2]
+
+        # filter out weak detections by ensuring the `confidence` is
+        # greater than the minimum confidence
+        if confidence > 0.95:
+            box = detections[0, 0, i, 3:7] * np.array(
+                [w, h, w, h]
+            )
+            (startX, startY, endX, endY) = box.astype("int")
+            eyes = eye_cascade.detectMultiScale(cv2.cvtColor(image[startY:endY, startX:endX], cv2.COLOR_BGR2GRAY), 1.1, 4)
+            if len(eyes) >= 1:
+                arrDs.append([i, confidence])
+        i+=1
+    # print(arrDs)
+    arrDs.sort(key=comp_)
+    return arrDs
+
 
 gpus = tf.config.experimental.list_physical_devices(device_type="GPU")
 for gpu in gpus:
@@ -34,27 +58,7 @@ while True:
         net.setInput(blob)
         detections = net.forward()
 
-        arrDs = []
-        # loop over the detections
-        i = 0
-        while i < detections.shape[2]:
-            # extract the confidence (i.e., probability) associated with the
-            # prediction
-            confidence = detections[0, 0, i, 2]
-
-            # filter out weak detections by ensuring the `confidence` is
-            # greater than the minimum confidence
-            if confidence > 0.95:
-                box = detections[0, 0, i, 3:7] * np.array(
-                    [w, h, w, h]
-                )
-                (startX, startY, endX, endY) = box.astype("int")
-                eyes = eye_cascade.detectMultiScale(cv2.cvtColor(image[startY:endY, startX:endX], cv2.COLOR_BGR2GRAY), 1.1, 4)
-                if len(eyes) >= 1:
-                    arrDs.append([i, confidence])
-            i+=1
-        # print(arrDs)
-        arrDs.sort(key=comp_)
+        arrDs = analyzeFaceDetections(detections, image)
         # print(arrDs)
 
         # compute the (x, y)-coordinates of the bounding box for the
@@ -70,7 +74,7 @@ while True:
 
             cv2.imshow('output',crop_img)
     
-            x_to_predict = np.array([cv2.resize(frame, dsize=(224, 224))]).astype(np.float32)
+            x_to_predict = np.array([cv2.resize(image, dsize=(224, 224))]).astype(np.float32)
             x_to_predict = x_to_predict / 255.0
             # print()
             yHat = model.predict(x_to_predict)[0]
