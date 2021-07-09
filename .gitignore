@@ -6,9 +6,8 @@
 *.ipynb
 *.json
 *.zip
-scripts/.vscode/settings.json
-.vscode/settings.json
 YOLO_DOWNLOADS/
-scripts/logs/*
+logs/*
+.vscode/settings.json
 res10_300x300_ssd_iter_140000.caffemodel
 deploy.prototxt

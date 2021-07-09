@@ -19,14 +19,17 @@ def makeDataSetFromVideos(
     leftCaps = []
     rightCaps = []
     falseCaps = []
-    print(os.listdir(f"D:/Updated/GP/raw_video_data/"))
-    for i in os.listdir(f"D:/Updated/GP/raw_video_data/"):
+    print(os.listdir(f"D:/Updated/GP/rawData/test"))
+    for i in os.listdir(f"D:/Updated/GP/rawData/test"):
         if "left" in i and ("MOV" in i or "mp4" in i):
-            leftCaps.append(cv2.VideoCapture(f"D:/Updated/GP/raw_video_data/{i}"))
+            print(f"D:/Updated/GP/rawData/test/{i}")
+            leftCaps.append(cv2.VideoCapture(f"D:/Updated/GP/rawData/test/{i}"))
         elif "right" in i and ("MOV" in i or "mp4" in i):
-            rightCaps.append(cv2.VideoCapture(f"D:/Updated/GP/raw_video_data/{i}"))
+            print(f"D:/Updated/GP/rawData/test/{i}")
+            rightCaps.append(cv2.VideoCapture(f"D:/Updated/GP/rawData/test/{i}"))
         elif "false" in i and ("MOV" in i or "mp4" in i):
-            falseCaps.append(cv2.VideoCapture(f"D:/Updated/GP/raw_video_data/{i}"))
+            print(f"D:/Updated/GP/rawData/test/{i}")
+            falseCaps.append(cv2.VideoCapture(f"D:/Updated/GP/rawData/test/{i}"))
 
     left = []
     right = []
@@ -36,7 +39,7 @@ def makeDataSetFromVideos(
         success, image = falseCap.read()
         count = 0
         while success:
-            if count == 40:
+            if count == count:
                 if resizeImages:
                     image = cv2.resize(image, (224, 224))
                 if rotateImages:
@@ -51,7 +54,7 @@ def makeDataSetFromVideos(
         success, image = leftCap.read()
         count = 0
         while success:
-            if count == 40:
+            if count == count:
                 if resizeImages:
                     image = cv2.resize(image, (224, 224))
                 if rotateImages:
@@ -64,7 +67,7 @@ def makeDataSetFromVideos(
         success, image = rightCap.read()
         count = 0
         while success:
-            if count == 40:
+            if count == count:
                 if resizeImages:
                     image = cv2.resize(image, (224, 224))
                 if rotateImages:
@@ -101,8 +104,10 @@ def makeDataSetFromVideos(
         x_test, y_test = shuffle(x_test, y_test)
 
     if saveToDrive:
-        np.save(f"{rootDir}/npys/x_test{desc}", x_test)
-        np.save(f"{rootDir}/npys/y_test{desc}", y_test)
+        # np.save(f"{rootDir}/npys/x_test{desc}", x_test)
+        # np.save(f"{rootDir}/npys/y_test{desc}", y_test)
+        np.save("./npys/x_test_cropped_noeyes.npy", x_test)
+        np.save("./npys/y_test_cropped_noeyes.npy", y_test)
     print(x_test.shape, y_test.shape)
     return x_test, y_test
 
@@ -173,9 +178,10 @@ def cropDatasetNoEyes(x_test, y_test):
     np.save("./npys/x_test_cropped_noeyes", npArr)
     np.save("./npys/y_test_cropped_noeyes", np.array(newY))
     np.save("./npys/scales_cropped_noeyes", np.array(scales))
+    print(npArr.shape, "done cropping")
 
-# makeDataSetFromVideos(True, False, True, True, True)
+makeDataSetFromVideos(True, False, True, True, True)
 cropDatasetNoEyes(
-    np.load("./npys/x_test_normalized_rotated_resized.npy"),
-    np.load("./npys/y_test_normalized_rotated_resized.npy"),
+    np.load("./npys/x_test_cropped_noeyes.npy"),
+    np.load("./npys/y_test_cropped_noeyes.npy"),
 )
