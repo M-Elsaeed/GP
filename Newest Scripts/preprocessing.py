@@ -186,26 +186,6 @@ def makeDataSetFromVideos(
 
 
 def cropDataset(x_train, y_train):
-    def calcMean():
-        print(x_train.shape)
-        adjFactor = 255 / (x_train.shape[0] * x_train.shape[1] * x_train.shape[2])
-        r_avg = 0.0
-        g_avg = 0.0
-        b_avg = 0.0
-
-        m = 0
-        while m < len(x_train):
-            image = x_train[m]
-            for row in image:
-                for pixel in row:
-                    r_avg += pixel[0] * adjFactor
-                    g_avg += pixel[1] * adjFactor
-                    b_avg += pixel[2] * adjFactor
-            print(m)
-            m += 1
-        print(r_avg, g_avg, b_avg)
-        return (r_avg, g_avg, b_avg)
-
     def comp_(a1):
         return a1[1]
 
@@ -317,7 +297,135 @@ def cropDataset(x_train, y_train):
     np.save("./npys/y_train_cropped", np.array(newY))
 
 
-cropDataset(
+def cropDatasetHaarCascade(x_train, y_train):
+    def face_detector(img):
+        face_cascade = cv2.CascadeClassifier(
+            cv2.data.haarcascades + "haarcascade_frontalface_alt.xml"
+        )
+        # load color (BGR) image
+        # img = cv2.imread(img_path)
+        # convert BGR image to grayscale
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+        # find faces in image
+        faces = face_cascade.detectMultiScale(gray, 1.3, 5)
+
+        # print number of faces detected in the image
+        # print("Number of faces detected:", len(faces))
+
+        # get bounding box for each detected face
+        for (x, y, w, h) in faces:
+            # add bounding box to color image
+            # cv2.rectangle(img, (x, y), (x+w, y+h), (255, 0, 0), 2)
+            crop_img = img[y : y + h, x : x + w]
+            crop_img = cv2.resize(crop_img, (224, 224))
+            # print(crop_img.shape)
+            # crop_img_gray = gray[x:x+w, y:y+h]
+            # align_Face(crop_img, crop_img_gray)
+            # cv2.waitKey(0)
+
+        # convert BGR image to RGB for plotting
+        # cv_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        # img = cv2.resize(cv_rgb, (480, 480))
+        if len(faces):
+            # cv2.imshow('cropped', crop_img)
+            # cv2.waitKey(50)
+            # print(crop_img.shape)
+            return crop_img
+        return None
+
+    newX = []
+    newY = []
+    k = 0
+    while k < len(x_train):
+        image = (x_train[k] * 255).astype(np.uint8)
+        lbl = y_train[k]
+        crop_img = face_detector(image)
+        if crop_img is not None:
+            newX.append(crop_img)
+            newY.append(lbl)
+        k += 1
+
+    del x_train
+    del y_train
+
+    npArr = np.array(newX)
+    npArr = npArr.astype(np.float32)
+    npArr /= 255
+    print(npArr.shape)
+    np.save("./npys/x_train_cropped_haar", npArr)
+    np.save("./npys/y_train_cropped_haar", np.array(newY))
+
+
+def cropDatasetNoEyes(x_train, y_train):
+
+    net = cv2.dnn.readNetFromCaffe(
+        "./faceDetectionModel/deploy.prototxt",
+        "./faceDetectionModel/res10_300x300_ssd_iter_140000.caffemodel",
+    )
+
+    newX = []
+    newY = []
+    scales = []
+    k = 0
+
+    r = x_train[..., 0].mean() * 255
+    g = x_train[..., 1].mean() * 255
+    b = x_train[..., 2].mean() * 255
+    print(r, g, b)
+
+    while k < len(x_train):
+        image = (x_train[k] * 255).astype(np.uint8)
+        lbl = y_train[k]
+        (h, w) = image.shape[:2]
+
+        blob = cv2.dnn.blobFromImage(
+            # cv2.resize(image, (300, 300)), 1.0, (300, 300), (104.0, 177.0, 123.0)
+            cv2.resize(image, (300, 300)),
+            1.0,
+            (300, 300),
+            (r, g, b),
+        )
+        net.setInput(blob)
+        detections = net.forward()
+        # loop over the detections
+        i = 0
+        while i < detections.shape[2]:
+            # extract the confidence (i.e., probability) associated with the
+            # prediction
+            confidence = detections[0, 0, i, 2]
+
+            # filter out weak detections by ensuring the `confidence` is
+            # greater than the minimum confidence
+            # print(confidence)
+            if confidence > 0.95:
+                box = detections[0, 0, i, 3:7] * np.array([w, h, w, h])
+                (startX, startY, endX, endY) = box.astype("int")
+                if startY <= 90:
+                    crop_img = image[startY:endY, startX:endX]
+                    try:
+                        crop_img = cv2.resize(crop_img, (224, 224))
+                        newX.append(crop_img)
+                        newY.append(lbl)
+                        scales.append((confidence, startY, endY, startX, endX, abs(endY - startY) / abs(endX - startX)))
+                    except:
+                        print(startY, endY, startX, endX)
+            i += 1
+        k += 1
+
+    del x_train
+    del y_train
+
+    npArr = np.array(newX)
+    npArr = npArr.astype(np.float32)
+    npArr /= 255
+
+    np.save("./npys/x_train_cropped_noeyes", npArr)
+    np.save("./npys/y_train_cropped_noeyes", np.array(newY))
+    np.save("./npys/scales_cropped_noeyes", np.array(scales))
+
+
+cropDatasetNoEyes(
     np.load("./npys/x_train_normalized_rotated_resized.npy"),
     np.load("./npys/y_train_normalized_rotated_resized.npy"),
 )

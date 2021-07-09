@@ -9,11 +9,11 @@ for gpu in gpus:
     tf.config.experimental.set_memory_growth(gpu, True)
 
 
-x_train = np.load(f"{rootDir}/npys/x_train.npy")
-y_train = np.load(f"{rootDir}/npys/y_train.npy")
+x_train = np.load(f"{rootDir}npys/x_train_cropped_noeyes.npy")
+y_train = np.load(f"{rootDir}npys/y_train_cropped_noeyes.npy")
 
-x_test = np.load(f"{rootDir}/npys/x_test.npy")
-y_test = np.load(f"{rootDir}/npys/y_test.npy")
+x_test = np.load(f"{rootDir}npys/x_test.npy")
+y_test = np.load(f"{rootDir}npys/y_test.npy")
 
 print(x_train[0])
 
@@ -36,7 +36,7 @@ model.add(keras.layers.Dense(3, activation="softmax"))
 adamOptimizer = keras.optimizers.Adam(learning_rate=0.0001)
 
 callback = tf.keras.callbacks.EarlyStopping(
-    monitor="val_accuracy", patience=3, mode="max"
+    monitor="val_accuracy", patience=4, mode="max"
 )
 
 
@@ -46,7 +46,7 @@ model.compile(
 
 model.summary()
 
-model = keras.models.load_model(f"{rootDir}/trainedModels/blkshirts.h5")
+# model = keras.models.load_model(f"{rootDir}/trainedModels/blkshirts.h5")
 
 history = model.fit(
     x_train,

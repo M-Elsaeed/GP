@@ -9,11 +9,15 @@ gpus = tf.config.experimental.list_physical_devices(device_type="GPU")
 for gpu in gpus:
     tf.config.experimental.set_memory_growth(gpu, True)
 
-model = keras.models.load_model(f"./trainedModels/blkshirts2.h5")
+# model = keras.models.load_model(f"./trainedModels/blkshirts2.h5")
+model = keras.models.load_model(f"./trainedModels/croppedModel.h5")
+
 
 
 # url = 'http://192.168.1.89:8080/video'
-url = 'http://192.168.0.106:8080/video'
+url = 'http://172.20.10.2:8080/video'
+url = 'http://192.168.0.104:8080/video'
+
 cap = cv2.VideoCapture(url)
 # cap = cv2.VideoCapture("../test/right_test.mp4")
 
