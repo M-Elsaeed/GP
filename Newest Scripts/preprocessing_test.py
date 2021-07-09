@@ -31,6 +31,22 @@ def makeDataSetFromVideos(
     left = []
     right = []
     false = []
+
+    for falseCap in falseCaps:
+        success, image = falseCap.read()
+        count = 0
+        while success:
+            if count == 40:
+                if resizeImages:
+                    image = cv2.resize(image, (224, 224))
+                if rotateImages:
+                    image = cv2.rotate(image, cv2.ROTATE_90_CLOCKWISE)
+                false.append(image)
+                count = 0
+            count += 1
+            success, image = falseCap.read()
+    false = np.array(false)
+    print(false.shape)
     for leftCap in leftCaps:
         success, image = leftCap.read()
         count = 0
@@ -57,25 +73,13 @@ def makeDataSetFromVideos(
                 count = 0
             count += 1
             success, image = rightCap.read()
-    for falseCap in falseCaps:
-        success, image = falseCap.read()
-        count = 0
-        while success:
-            if count == 40:
-                if resizeImages:
-                    image = cv2.resize(image, (224, 224))
-                if rotateImages:
-                    image = cv2.rotate(image, cv2.ROTATE_90_CLOCKWISE)
-                false.append(image)
-                count = 0
-            count += 1
-            false.append(image)
-            success, image = falseCap.read()
+
 
     if normalizeArray:
         left = np.array(left)
         right = np.array(right)
         false = np.array(false)
+        print(left.shape, right.shape, false.shape)
         left = left.astype(np.float32)
         right = right.astype(np.float32)
         false = false.astype(np.float32)
@@ -99,7 +103,7 @@ def makeDataSetFromVideos(
     if saveToDrive:
         np.save(f"{rootDir}/npys/x_test{desc}", x_test)
         np.save(f"{rootDir}/npys/y_test{desc}", y_test)
-
+    print(x_test.shape, y_test.shape)
     return x_test, y_test
 
 
@@ -170,7 +174,7 @@ def cropDatasetNoEyes(x_test, y_test):
     np.save("./npys/y_test_cropped_noeyes", np.array(newY))
     np.save("./npys/scales_cropped_noeyes", np.array(scales))
 
-makeDataSetFromVideos(True, False, True, True, True)
+# makeDataSetFromVideos(True, False, True, True, True)
 cropDatasetNoEyes(
     np.load("./npys/x_test_normalized_rotated_resized.npy"),
     np.load("./npys/y_test_normalized_rotated_resized.npy"),

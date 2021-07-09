@@ -12,8 +12,8 @@ for gpu in gpus:
 x_train = np.load(f"{rootDir}npys/x_train_cropped_noeyes.npy")
 y_train = np.load(f"{rootDir}npys/y_train_cropped_noeyes.npy")
 
-x_test = np.load(f"{rootDir}npys/x_test.npy")
-y_test = np.load(f"{rootDir}npys/y_test.npy")
+x_test = np.load(f"{rootDir}npys/x_test_cropped_noeyes.npy")
+y_test = np.load(f"{rootDir}npys/y_test_cropped_noeyes.npy")
 
 print(x_train[0])
 
