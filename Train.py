@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import silence_tensorflow.auto
 import tensorflow as tf
 from tensorflow import keras
 from environment import rootDir
@@ -30,6 +31,7 @@ coreModel = keras.applications.resnet50.ResNet50(
 )
 model.add(coreModel)
 model.add(keras.layers.Flatten())
+model.add(keras.layers.Dense(100, activation="relu"))
 model.add(keras.layers.Dense(3, activation="softmax"))
 
 
