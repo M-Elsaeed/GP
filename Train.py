@@ -5,6 +5,7 @@ import tensorflow as tf
 from tensorflow import keras
 from environment import rootDir
 import datetime
+from utilities import shuffle
 
 gpus = tf.config.experimental.list_physical_devices(device_type="GPU")
 for gpu in gpus:
@@ -39,7 +40,7 @@ model.add(keras.layers.Dense(3, activation="softmax"))
 adamOptimizer = keras.optimizers.Adam(learning_rate=0.0001)
 
 callback = tf.keras.callbacks.EarlyStopping(
-    monitor="val_accuracy", patience=3, mode="max"
+    monitor="val_accuracy", patience=2, mode="max"
 )
 
 log_dir = "logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -50,18 +51,19 @@ model.compile(
 )
 
 model.summary()
-
+model = keras.models.load_model(f"{rootDir}/trainedModels/croppedModelSuffleFC.h5")
+x_train, y_train = shuffle(x_train, y_train)
 
 history = model.fit(
     x_train,
     y_train,
-    batch_size=32,
+    batch_size=16,
     epochs=20,
     validation_data=(x_test, y_test),
     callbacks=[callback, tensorboard_callback]
 )
 
 
-model.save(f"{rootDir}/trainedModels/croppedModel.h5", save_format="h5")
+model.save(f"{rootDir}/trainedModels/croppedModelSuffleFC.h5", save_format="h5")
 
 print(history)
