@@ -1,0 +1,17 @@
+TY  - JOUR
+AU  - Elpeltagy, Marwa
+AU  - Sallam, Hany
+PY  - 2021
+DA  - 2021/07/01
+TI  - Automatic prediction of COVID− 19 from chest images using modified ResNet50
+JO  - Multimedia Tools and Applications
+SP  - 26451
+EP  - 26463
+VL  - 80
+IS  - 17
+AB  - Recently coronavirus 2019 (COVID-2019), discovered in Wuhan city of China in December 2019 announced as world pandemic by the World Health Organization (WHO). It has catastrophic impacts on daily lives, public health, and the global economy. The detection of coronavirus (COVID− 19) is now a critical task for medical specialists. Laboratory methods for detecting the virus such as Polymerase Chain Reaction, antigens, and antibodies have pros and cons represented in time required to obtain results, accuracy, cost and suitability of the test to phase of infection. The need for accurate, fast, and cheap auxiliary diagnostic tools has become a necessity as there are no accurate automated toolkits available. Other medical investigations such as chest X−ray and Computerized Tomography scans are imaging techniques that play an important role in the diagnosis of COVID− 19 virus. Application of advanced artificial intelligence techniques for processing radiological imaging can be helpful for the accurate detection of this virus. However, Due to the small dataset available for COVID− 19, transfer learning from pre−trained convolution neural networks, CNNs can be used as a promising solution for diagnosis of coronavirus. Transfer learning becomes an effective mechanism by transferring knowledge from generic object recognition tasks to domain-specific tasks. Hence, the main contribution of this paper is to exploit the pre−trained deep learning CNN architectures as a cornerstone to enhance and build up an automated tool for detection and diagnosis of COVID− 19 in chest X−Ray and Computerized Tomography images. The main idea is to make use of their convolutional neural network structure and its learned weights on large datasets such as ImageNet. Moreover, a modification to ResNet50 is proposed to classify the patients as COVID infected or not. This modification includes adding three new layers, named, ′Conv′, ′Batch_Normaliz′ and ′Activation_Relu′ layers. These layers are injected in the ResNet50 architecture for accurate discrimination and robust feature extraction. Extensive experiments are carried out to assess the performance of the proposed model on COVID− 19 chest X−Ray and Computerized Tomography scan images. Experimental results approve that the proposed modification, injected layers, increases the diagnosis accuracy to 97.7% for Computerized Tomography dataset and 97.1% for X−Ray dataset which is superior compared to other approaches.
+SN  - 1573-7721
+UR  - https://doi.org/10.1007/s11042-021-10783-6
+DO  - 10.1007/s11042-021-10783-6
+ID  - Elpeltagy2021
+ER  - 
